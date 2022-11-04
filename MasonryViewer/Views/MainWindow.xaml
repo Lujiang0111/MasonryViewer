@@ -1,0 +1,61 @@
+﻿<mah:MetroWindow
+    x:Class="MasonryViewer.Views.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:prism="http://prismlibrary.com/"
+    Title="{Binding Title}"
+    Width="800"
+    Height="450"
+    prism:ViewModelLocator.AutoWireViewModel="True">
+    <mah:MetroWindow.Resources>
+        <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.FlatSlider.xaml" />
+    </mah:MetroWindow.Resources>
+    <mah:MetroWindow.RightWindowCommands>
+        <mah:WindowCommands>
+            <Button Command="{Binding OpenSettingsFlyoutCommand}">
+                <Button.ContentTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial VerticalAlignment="Center" Kind="Cog" />
+                        </StackPanel>
+                    </DataTemplate>
+                </Button.ContentTemplate>
+            </Button>
+        </mah:WindowCommands>
+    </mah:MetroWindow.RightWindowCommands>
+    <Grid>
+        <mah:FlyoutsControl>
+            <mah:Flyout
+                Width="250"
+                Header="Settings"
+                IsOpen="{Binding IsSettingsFlyoutOpen}"
+                Position="Right">
+                <StackPanel>
+                    <StackPanel Margin="10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="每行显示图片数量：" FontSize="15" />
+                            <Label Content="{Binding ImageCntPerLine}" FontSize="15" />
+                        </StackPanel>
+                        <Slider
+                            Margin="0,5,0,0"
+                            AutoToolTipPlacement="TopLeft"
+                            AutoToolTipPrecision="0"
+                            IsSnapToTickEnabled="True"
+                            Maximum="10"
+                            Minimum="1"
+                            Style="{DynamicResource FlatSlider}"
+                            TickFrequency="1"
+                            TickPlacement="TopLeft"
+                            Value="{Binding ImageCntPerLine, Mode=TwoWay}" />
+                    </StackPanel>
+
+                </StackPanel>
+
+
+                <!--  The content goes here  -->
+            </mah:Flyout>
+        </mah:FlyoutsControl>
+    </Grid>
+</mah:MetroWindow>
