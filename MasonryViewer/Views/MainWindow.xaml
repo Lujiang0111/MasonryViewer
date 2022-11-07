@@ -82,10 +82,10 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderBrush="Transparent" BorderThickness="1">
+                        <Border BorderBrush="{Binding BorderBrush}" BorderThickness="{Binding BorderThickness}">
                             <Image
                                 Width="{Binding Width}"
-                                Margin="5"
+                                Margin="{Binding Margin}"
                                 Stretch="Uniform">
                                 <Image.Source>
                                     <BitmapImage DecodePixelWidth="{Binding Width}" UriSource="{Binding Path}" />

@@ -83,7 +83,7 @@ namespace MasonryViewer.ViewModels
                 UImage uImage = new UImage
                 {
                     Path = images[imageNextShowIndex],
-                    Width = imagePanelWidth / ImageCntPerLine - 12
+                    Width = imagePanelWidth / ImageCntPerLine - (int)(UImage.Margin.Left + UImage.BorderThickness.Left) * 2
                 };
                 UImages.Add(uImage);
 
@@ -110,12 +110,11 @@ namespace MasonryViewer.ViewModels
         {
             IsSettingsFlyoutOpen = !IsSettingsFlyoutOpen;
         }
-        private void Refresh()
+        public void Refresh()
         {
             UImages.Clear();
             imageNextShowIndex = 0;
             ShowMoreImage();
         }
-
     }
 }
