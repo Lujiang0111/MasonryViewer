@@ -15,7 +15,7 @@
     </mah:MetroWindow.Resources>
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands>
-            <Button Command="{Binding OpenImageFolderCommand}">
+            <Button Click="OpenImageFolderButton_Click">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -24,7 +24,7 @@
                     </DataTemplate>
                 </Button.ContentTemplate>
             </Button>
-            <Button Command="{Binding RefreshCommand}">
+            <Button Click="RefreshButton_Click">
                 <Button.ContentTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -73,19 +73,36 @@
                 </StackPanel>
             </mah:Flyout>
         </mah:FlyoutsControl>
-        <ScrollViewer Panel.ZIndex="0" ScrollChanged="ImageScrollViewer_ScrollChanged">
+        <ScrollViewer
+            x:Name="ImageScrollViewer"
+            Panel.ZIndex="0"
+            ScrollChanged="ImageScrollViewer_ScrollChanged"
+            SizeChanged="ImageScrollViewer_SizeChanged"
+            VerticalScrollBarVisibility="Visible">
             <ItemsControl ItemsSource="{Binding UImages}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <WrapPanel SizeChanged="ImagePanel_SizeChanged" />
+                        <WrapPanel />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border BorderBrush="{Binding BorderBrush}" BorderThickness="{Binding BorderThickness}">
+                            <Border.InputBindings>
+                                <MouseBinding
+                                    Command="{Binding DataContext.LeftDoubleClickImageCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}"
+                                    MouseAction="LeftDoubleClick" />
+                                <MouseBinding
+                                    Command="{Binding DataContext.LeftClickImageCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}"
+                                    MouseAction="LeftClick" />
+                            </Border.InputBindings>
                             <Image
                                 Width="{Binding Width}"
                                 Margin="{Binding Margin}"
+                                MouseMove="Image_MouseMove"
+                                PreviewMouseLeftButtonDown="Image_PreviewMouseLeftButtonDown"
                                 Stretch="Uniform">
                                 <Image.Source>
                                     <BitmapImage DecodePixelWidth="{Binding Width}" UriSource="{Binding Path}" />

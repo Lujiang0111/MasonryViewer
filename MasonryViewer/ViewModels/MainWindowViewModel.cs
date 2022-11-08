@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Windows.Media;
 
 namespace MasonryViewer.ViewModels
 {
@@ -39,25 +40,38 @@ namespace MasonryViewer.ViewModels
             set { SetProperty(ref uImages, value); }
         }
 
-        public DelegateCommand OpenImageFolderCommand { get; set; } = null;
-        public DelegateCommand RefreshCommand { get; set; } = null;
         public DelegateCommand OpenSettingsFlyoutCommand { get; set; } = null;
+        public DelegateCommand<UImage> LeftClickImageCommand { get; set; } = null;
+        public DelegateCommand<UImage> LeftDoubleClickImageCommand { get; set; } = null;
 
         private string imageFolderPath = "";
-        private List<string> images = new List<string>();
-        private int imageNextShowIndex = 0;
+        private List<string> imagePaths = new List<string>();
 
+        private int nextShowImageIndex = 0;
         private int imagePanelWidth = 0;
+        private UImage lastSelectedImage = null;
 
         public MainWindowViewModel()
         {
             Title = string.Format("{0} v{1}", Assembly.GetEntryAssembly().GetName().Name, Assembly.GetExecutingAssembly().GetName().Version.ToString());
 
-            OpenImageFolderCommand = new DelegateCommand(OpenImageFolder);
-            RefreshCommand = new DelegateCommand(Refresh);
             OpenSettingsFlyoutCommand = new DelegateCommand(OpenSettingsFlyout);
+            LeftClickImageCommand = new DelegateCommand<UImage>(LeftClickImage);
+            LeftDoubleClickImageCommand = new DelegateCommand<UImage>(LeftDoubleClickImage);
+        }
 
-            Refresh();
+        public void OpenImageFolder()
+        {
+            var dialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
+            dialog.Description = "Select Image Folder";
+            dialog.UseDescriptionForTitle = true;
+            if (dialog.ShowDialog().GetValueOrDefault())
+            {
+                imageFolderPath = dialog.SelectedPath;
+                imagePaths = Directory.EnumerateFiles(imageFolderPath, "*.*", SearchOption.AllDirectories).
+                    Where(s => s.EndsWith(".bmp") || s.EndsWith(".jpg") || s.EndsWith(".png") ||
+                    s.EndsWith(".tif") || s.EndsWith(".tiff") || s.EndsWith(".gif")).ToList();
+            }
         }
 
         public void OnImagePanelSizeChanged(double width)
@@ -68,53 +82,57 @@ namespace MasonryViewer.ViewModels
         public void OnImageCntPerLineChanged(double value)
         {
             ImageCntPerLine = (int)value;
-            Refresh();
         }
 
-        public void ShowMoreImage()
+        public bool ShowMoreImage()
         {
+            bool ret = false;
             for (int index = 0; index < ImageCntPerLine; ++index)
             {
-                if (imageNextShowIndex >= images.Count)
+                if (nextShowImageIndex >= imagePaths.Count)
                 {
-                    return;
+                    break;
                 }
 
                 UImage uImage = new UImage
                 {
-                    Path = images[imageNextShowIndex],
+                    Path = imagePaths[nextShowImageIndex],
                     Width = imagePanelWidth / ImageCntPerLine - (int)(UImage.Margin.Left + UImage.BorderThickness.Left) * 2
                 };
                 UImages.Add(uImage);
 
-                ++imageNextShowIndex;
+                ret = true;
+                ++nextShowImageIndex;
             };
+            return ret;
         }
 
-        private void OpenImageFolder()
+        public void Refresh()
         {
-            var dialog = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
-            dialog.Description = "Select Image Folder";
-            dialog.UseDescriptionForTitle = true;
-            if (dialog.ShowDialog().GetValueOrDefault())
-            {
-                imageFolderPath = dialog.SelectedPath;
-                images = Directory.EnumerateFiles(imageFolderPath, "*.*", SearchOption.AllDirectories).
-                    Where(s => s.EndsWith(".bmp") || s.EndsWith(".jpg") || s.EndsWith(".png") ||
-                    s.EndsWith(".tif") || s.EndsWith(".tiff") || s.EndsWith(".gif")).ToList();
-                Refresh();
-            }
+            UImages.Clear();
+            nextShowImageIndex = 0;
+            lastSelectedImage = null;
+            ShowMoreImage();
         }
 
         private void OpenSettingsFlyout()
         {
             IsSettingsFlyoutOpen = !IsSettingsFlyoutOpen;
         }
-        public void Refresh()
+
+        private void LeftClickImage(UImage uImage)
         {
-            UImages.Clear();
-            imageNextShowIndex = 0;
-            ShowMoreImage();
+            if (null != lastSelectedImage)
+            {
+                lastSelectedImage.BorderBrush = new SolidColorBrush(Colors.Transparent);
+            }
+            uImage.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#b47cff"));
+            lastSelectedImage = uImage;
+        }
+
+        private void LeftDoubleClickImage(UImage uImage)
+        {
+
         }
     }
 }
