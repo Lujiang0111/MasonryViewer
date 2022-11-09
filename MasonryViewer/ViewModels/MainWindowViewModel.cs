@@ -77,6 +77,10 @@ namespace MasonryViewer.ViewModels
         public void OnImagePanelSizeChanged(double width)
         {
             imagePanelWidth = (int)width;
+            for (int i = 0; i < UImages.Count; ++i)
+            {
+                UImages[i].Width = imagePanelWidth / ImageCntPerLine - (int)(UImage.Margin.Left + UImage.BorderThickness.Left) * 2;
+            }
         }
 
         public void OnImageCntPerLineChanged(double value)
@@ -97,7 +101,8 @@ namespace MasonryViewer.ViewModels
                 UImage uImage = new UImage(nextShowImageIndex)
                 {
                     Path = imagePaths[nextShowImageIndex],
-                    Width = imagePanelWidth / ImageCntPerLine - (int)(UImage.Margin.Left + UImage.BorderThickness.Left) * 2
+                    Width = imagePanelWidth / ImageCntPerLine - (int)(UImage.Margin.Left + UImage.BorderThickness.Left) * 2,
+                    DecodeWidth = (int)System.Windows.SystemParameters.PrimaryScreenWidth / ImageCntPerLine
                 };
                 UImages.Add(uImage);
 

@@ -25,6 +25,13 @@ namespace MasonryViewer.Common
             set { SetProperty(ref width, value); }
         }
 
+        private int decodeWidth = 0;
+        public int DecodeWidth
+        {
+            get { return decodeWidth; }
+            set { SetProperty(ref decodeWidth, value); }
+        }
+
         private SolidColorBrush borderBrush = new SolidColorBrush(Colors.Transparent);
         public SolidColorBrush BorderBrush
         {

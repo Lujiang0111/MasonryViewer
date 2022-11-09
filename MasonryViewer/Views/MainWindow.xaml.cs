@@ -4,7 +4,6 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Threading;
 
 namespace MasonryViewer.Views
 {
@@ -15,10 +14,6 @@ namespace MasonryViewer.Views
     {
         private double imageScrollViewerMaxHeight = 0;
         private Point imageStartPoint = new Point();
-
-        private bool canResizeImagePanel = false;
-        private double oldScrollViewerOffset = 0;
-        private double oldImagePanelWidth = 0;
 
         public MainWindow()
         {
@@ -89,28 +84,15 @@ namespace MasonryViewer.Views
 
         private void ImageScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (!canResizeImagePanel)
-            {
-                canResizeImagePanel = true;
-                var scrollViewer = sender as ScrollViewer;
-                oldImagePanelWidth = e.PreviousSize.Width;
-                oldScrollViewerOffset = scrollViewer.VerticalOffset;
-                Dispatcher.BeginInvoke(new Action(ResizeImagePanel), DispatcherPriority.ApplicationIdle);
-            }
-        }
-
-        private void ResizeImagePanel()
-        {
-            canResizeImagePanel = false;
-            var scrollViewer = FindName("ImageScrollViewer") as ScrollViewer;
+            var scrollViewer = sender as ScrollViewer;
             ScrollContentPresenter content = (ScrollContentPresenter)scrollViewer.Template.FindName("PART_ScrollContentPresenter", scrollViewer);
             var vm = DataContext as MainWindowViewModel;
             vm.OnImagePanelSizeChanged(content.ActualWidth);
 
-            double newVerticalOffset = (oldImagePanelWidth > 0) ? (oldScrollViewerOffset * scrollViewer.ActualWidth / oldImagePanelWidth) : (0);
-            Refresh(false);
+            double newVerticalOffset = (e.PreviousSize.Width > 0) ? (scrollViewer.VerticalOffset * e.NewSize.Width / e.PreviousSize.Width) : (0);
             scrollViewer.ScrollToVerticalOffset(newVerticalOffset);
         }
+
 
         private void Image_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {

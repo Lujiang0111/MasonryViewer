@@ -103,9 +103,10 @@
                                 Margin="{Binding Margin}"
                                 MouseMove="Image_MouseMove"
                                 PreviewMouseLeftButtonDown="Image_PreviewMouseLeftButtonDown"
+                                RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Stretch="Uniform">
                                 <Image.Source>
-                                    <BitmapImage DecodePixelWidth="{Binding Width}" UriSource="{Binding Path}" />
+                                    <BitmapImage DecodePixelWidth="{Binding DecodeWidth}" UriSource="{Binding Path}" />
                                 </Image.Source>
                             </Image>
                         </Border>
