@@ -9,6 +9,8 @@ namespace MasonryViewer.Common
         static public Thickness BorderThickness { get; set; } = new Thickness(1);
         static public Thickness Margin { get; set; } = new Thickness(5);
 
+        public int index = -1;
+
         private string path = "";
         public string Path
         {
@@ -28,6 +30,11 @@ namespace MasonryViewer.Common
         {
             get { return borderBrush; }
             set { SetProperty(ref borderBrush, value); }
+        }
+
+        public UImage(int index)
+        {
+            this.index = index;
         }
     }
 }

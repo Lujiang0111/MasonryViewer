@@ -12,6 +12,10 @@ namespace MasonryViewer.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
+        public DelegateCommand OpenSettingsFlyoutCommand { get; set; } = null;
+        public DelegateCommand<UImage> LeftClickImageCommand { get; set; } = null;
+        public DelegateCommand<UImage> LeftDoubleClickImageCommand { get; set; } = null;
+
         private string title = "";
         public string Title
         {
@@ -40,16 +44,12 @@ namespace MasonryViewer.ViewModels
             set { SetProperty(ref uImages, value); }
         }
 
-        public DelegateCommand OpenSettingsFlyoutCommand { get; set; } = null;
-        public DelegateCommand<UImage> LeftClickImageCommand { get; set; } = null;
-        public DelegateCommand<UImage> LeftDoubleClickImageCommand { get; set; } = null;
-
         private string imageFolderPath = "";
         private List<string> imagePaths = new List<string>();
 
         private int nextShowImageIndex = 0;
         private int imagePanelWidth = 0;
-        private UImage lastSelectedImage = null;
+        private int lastSelectedImageIndex = -1;
 
         public MainWindowViewModel()
         {
@@ -94,12 +94,17 @@ namespace MasonryViewer.ViewModels
                     break;
                 }
 
-                UImage uImage = new UImage
+                UImage uImage = new UImage(nextShowImageIndex)
                 {
                     Path = imagePaths[nextShowImageIndex],
                     Width = imagePanelWidth / ImageCntPerLine - (int)(UImage.Margin.Left + UImage.BorderThickness.Left) * 2
                 };
                 UImages.Add(uImage);
+
+                if (nextShowImageIndex == lastSelectedImageIndex)
+                {
+                    LeftClickImage(uImage);
+                }
 
                 ret = true;
                 ++nextShowImageIndex;
@@ -107,12 +112,15 @@ namespace MasonryViewer.ViewModels
             return ret;
         }
 
-        public void Refresh()
+        public void Refresh(bool isResetLastSelectedImageIndex)
         {
             UImages.Clear();
             nextShowImageIndex = 0;
-            lastSelectedImage = null;
-            ShowMoreImage();
+
+            if (isResetLastSelectedImageIndex)
+            {
+                lastSelectedImageIndex = -1;
+            }
         }
 
         private void OpenSettingsFlyout()
@@ -122,12 +130,12 @@ namespace MasonryViewer.ViewModels
 
         private void LeftClickImage(UImage uImage)
         {
-            if (null != lastSelectedImage)
+            if ((lastSelectedImageIndex > 0) && (lastSelectedImageIndex < UImages.Count))
             {
-                lastSelectedImage.BorderBrush = new SolidColorBrush(Colors.Transparent);
+                UImages[lastSelectedImageIndex].BorderBrush = new SolidColorBrush(Colors.Transparent);
             }
             uImage.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#b47cff"));
-            lastSelectedImage = uImage;
+            lastSelectedImageIndex = uImage.index;
         }
 
         private void LeftDoubleClickImage(UImage uImage)

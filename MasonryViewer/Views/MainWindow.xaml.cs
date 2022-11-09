@@ -4,6 +4,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace MasonryViewer.Views
 {
@@ -13,30 +14,28 @@ namespace MasonryViewer.Views
     public partial class MainWindow
     {
         private double imageScrollViewerMaxHeight = 0;
-        private bool canDetectScrollChanged = true;
-        private System.Windows.Point imageStartPoint = new System.Windows.Point();
+        private Point imageStartPoint = new Point();
+
+        private bool canResizeImagePanel = false;
+        private double oldScrollViewerOffset = 0;
+        private double oldImagePanelWidth = 0;
 
         public MainWindow()
         {
             InitializeComponent();
-
-            canDetectScrollChanged = true;
-            Refresh();
+            Refresh(true);
         }
 
         private void ImageCntPerLineSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             var vm = DataContext as MainWindowViewModel;
             vm.OnImageCntPerLineChanged(e.NewValue);
-            Refresh();
+            Refresh(false);
         }
 
         private void ImageScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
-            if (canDetectScrollChanged)
-            {
-                ShowMoreImage();
-            }
+            ShowMoreImage();
         }
 
         private bool ShowMoreImage()
@@ -44,23 +43,26 @@ namespace MasonryViewer.Views
             bool ret = false;
             var vm = DataContext as MainWindowViewModel;
             var scrollViewer = FindName("ImageScrollViewer") as ScrollViewer;
-            if (imageScrollViewerMaxHeight > scrollViewer.ScrollableHeight)
+            if (null != scrollViewer)
             {
-                imageScrollViewerMaxHeight = scrollViewer.ScrollableHeight;
-            }
+                if (imageScrollViewerMaxHeight > scrollViewer.ScrollableHeight)
+                {
+                    imageScrollViewerMaxHeight = scrollViewer.ScrollableHeight;
+                }
 
-            if (scrollViewer.VerticalOffset >= imageScrollViewerMaxHeight)
-            {
-                imageScrollViewerMaxHeight = scrollViewer.ScrollableHeight;
-                ret = vm.ShowMoreImage();
+                if (scrollViewer.VerticalOffset >= imageScrollViewerMaxHeight)
+                {
+                    imageScrollViewerMaxHeight = scrollViewer.ScrollableHeight;
+                    ret = vm.ShowMoreImage();
+                }
             }
             return ret;
         }
 
-        private void Refresh()
+        private void Refresh(bool isResetLastSelectedImageIndex)
         {
             var vm = DataContext as MainWindowViewModel;
-            vm.Refresh();
+            vm.Refresh(isResetLastSelectedImageIndex);
 
             imageScrollViewerMaxHeight = 0;
             var scrollViewer = FindName("ImageScrollViewer") as ScrollViewer;
@@ -68,44 +70,50 @@ namespace MasonryViewer.Views
             {
                 scrollViewer.ScrollToTop();
             }
+
+            ShowMoreImage();
         }
 
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            Refresh();
+            var scrollViewer = FindName("ImageScrollViewer") as ScrollViewer;
+            Refresh(true);
         }
 
         private void OpenImageFolderButton_Click(object sender, RoutedEventArgs e)
         {
             var vm = DataContext as MainWindowViewModel;
             vm.OpenImageFolder();
-            Refresh();
+            Refresh(true);
         }
 
         private void ImageScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            var scrollViewer = sender as ScrollViewer;
+            if (!canResizeImagePanel)
+            {
+                canResizeImagePanel = true;
+                var scrollViewer = sender as ScrollViewer;
+                oldImagePanelWidth = e.PreviousSize.Width;
+                oldScrollViewerOffset = scrollViewer.VerticalOffset;
+                Dispatcher.BeginInvoke(new Action(ResizeImagePanel), DispatcherPriority.ApplicationIdle);
+            }
+        }
+
+        private void ResizeImagePanel()
+        {
+            canResizeImagePanel = false;
+            var scrollViewer = FindName("ImageScrollViewer") as ScrollViewer;
             ScrollContentPresenter content = (ScrollContentPresenter)scrollViewer.Template.FindName("PART_ScrollContentPresenter", scrollViewer);
             var vm = DataContext as MainWindowViewModel;
             vm.OnImagePanelSizeChanged(content.ActualWidth);
 
-            canDetectScrollChanged = false;
-            UpdateLayout();
-
-            while (scrollViewer.VerticalOffset == scrollViewer.ScrollableHeight)
-            {
-                if (!ShowMoreImage())
-                {
-                    break;
-                }
-                UpdateLayout();
-            }
-            canDetectScrollChanged = true;
+            double newVerticalOffset = (oldImagePanelWidth > 0) ? (oldScrollViewerOffset * scrollViewer.ActualWidth / oldImagePanelWidth) : (0);
+            Refresh(false);
+            scrollViewer.ScrollToVerticalOffset(newVerticalOffset);
         }
 
         private void Image_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-
             imageStartPoint = e.GetPosition(null);
         }
 
