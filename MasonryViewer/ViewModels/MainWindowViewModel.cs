@@ -1,7 +1,7 @@
 ﻿using MasonryViewer.Common;
+using MasonryViewer.Extensions;
 using Prism.Commands;
 using Prism.Mvvm;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -13,8 +13,7 @@ namespace MasonryViewer.ViewModels
     public class MainWindowViewModel : BindableBase
     {
         public DelegateCommand OpenSettingsFlyoutCommand { get; set; } = null;
-        public DelegateCommand<UImage> LeftClickImageCommand { get; set; } = null;
-        public DelegateCommand<UImage> LeftDoubleClickImageCommand { get; set; } = null;
+        public int NextShowImageIndex { get; private set; } = 0;
 
         private string title = "";
         public string Title
@@ -44,20 +43,13 @@ namespace MasonryViewer.ViewModels
             set { SetProperty(ref uImages, value); }
         }
 
-        private string imageFolderPath = "";
-        private List<string> imagePaths = new List<string>();
-
-        private int nextShowImageIndex = 0;
         private int imagePanelWidth = 0;
-        private int lastSelectedImageIndex = -1;
+        private int selectedImageIndex = -1;
 
         public MainWindowViewModel()
         {
             Title = string.Format("{0} v{1}", Assembly.GetEntryAssembly().GetName().Name, Assembly.GetExecutingAssembly().GetName().Version.ToString());
-
             OpenSettingsFlyoutCommand = new DelegateCommand(OpenSettingsFlyout);
-            LeftClickImageCommand = new DelegateCommand<UImage>(LeftClickImage);
-            LeftDoubleClickImageCommand = new DelegateCommand<UImage>(LeftDoubleClickImage);
         }
 
         public void OpenImageFolder()
@@ -67,10 +59,11 @@ namespace MasonryViewer.ViewModels
             dialog.UseDescriptionForTitle = true;
             if (dialog.ShowDialog().GetValueOrDefault())
             {
-                imageFolderPath = dialog.SelectedPath;
-                imagePaths = Directory.EnumerateFiles(imageFolderPath, "*.*", SearchOption.AllDirectories).
+                ImageManager.Instance.ImageFolderPath = dialog.SelectedPath;
+                ImageManager.Instance.ImagePaths = Directory.EnumerateFiles(ImageManager.Instance.ImageFolderPath, "*.*", SearchOption.AllDirectories).
                     Where(s => s.EndsWith(".bmp") || s.EndsWith(".jpg") || s.EndsWith(".png") ||
                     s.EndsWith(".tif") || s.EndsWith(".tiff") || s.EndsWith(".gif")).ToList();
+                ImageManager.Instance.ImagePaths.Sort();
             }
         }
 
@@ -79,7 +72,7 @@ namespace MasonryViewer.ViewModels
             imagePanelWidth = (int)width;
             for (int i = 0; i < UImages.Count; ++i)
             {
-                UImages[i].Width = imagePanelWidth / ImageCntPerLine - (int)(UImage.Margin.Left + UImage.BorderThickness.Left) * 2;
+                UImages[i].Width = CalculateImageWidth();
             }
         }
 
@@ -93,59 +86,63 @@ namespace MasonryViewer.ViewModels
             bool ret = false;
             for (int index = 0; index < ImageCntPerLine; ++index)
             {
-                if (nextShowImageIndex >= imagePaths.Count)
+                if (NextShowImageIndex >= ImageManager.Instance.ImagePaths.Count)
                 {
                     break;
                 }
 
-                UImage uImage = new UImage(nextShowImageIndex)
+                UImage uImage = new UImage(NextShowImageIndex)
                 {
-                    Path = imagePaths[nextShowImageIndex],
-                    Width = imagePanelWidth / ImageCntPerLine - (int)(UImage.Margin.Left + UImage.BorderThickness.Left) * 2,
+                    Path = ImageManager.Instance.ImagePaths[NextShowImageIndex],
+                    Width = CalculateImageWidth(),
                     DecodeWidth = (int)System.Windows.SystemParameters.PrimaryScreenWidth / ImageCntPerLine
                 };
                 UImages.Add(uImage);
 
-                if (nextShowImageIndex == lastSelectedImageIndex)
+                if (NextShowImageIndex == selectedImageIndex)
                 {
-                    LeftClickImage(uImage);
+                    SelectImage(uImage.Index);
                 }
 
                 ret = true;
-                ++nextShowImageIndex;
+                ++NextShowImageIndex;
             };
             return ret;
         }
 
-        public void Refresh(bool isResetLastSelectedImageIndex)
+        public void Refresh(bool isResetSelectedImageIndex)
         {
             UImages.Clear();
-            nextShowImageIndex = 0;
+            NextShowImageIndex = 0;
 
-            if (isResetLastSelectedImageIndex)
+            if (isResetSelectedImageIndex)
             {
-                lastSelectedImageIndex = -1;
+                selectedImageIndex = -1;
             }
+        }
+
+        public void SelectImage(int index)
+        {
+            if ((selectedImageIndex > 0) && (selectedImageIndex < UImages.Count))
+            {
+                UImages[selectedImageIndex].BorderBrush = new SolidColorBrush(Colors.Transparent);
+            }
+
+            if ((index > 0) && (index < UImages.Count))
+            {
+                UImages[index].BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#b47cff"));
+                selectedImageIndex = index;
+            }
+        }
+
+        private int CalculateImageWidth()
+        {
+            return imagePanelWidth / ImageCntPerLine - (int)(ImageManager.Instance.Margin.Left + ImageManager.Instance.BorderThickness.Left) * 2;
         }
 
         private void OpenSettingsFlyout()
         {
             IsSettingsFlyoutOpen = !IsSettingsFlyoutOpen;
-        }
-
-        private void LeftClickImage(UImage uImage)
-        {
-            if ((lastSelectedImageIndex > 0) && (lastSelectedImageIndex < UImages.Count))
-            {
-                UImages[lastSelectedImageIndex].BorderBrush = new SolidColorBrush(Colors.Transparent);
-            }
-            uImage.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#b47cff"));
-            lastSelectedImageIndex = uImage.index;
-        }
-
-        private void LeftDoubleClickImage(UImage uImage)
-        {
-
         }
     }
 }

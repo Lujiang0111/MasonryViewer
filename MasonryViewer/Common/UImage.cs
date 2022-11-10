@@ -1,15 +1,11 @@
 ﻿using Prism.Mvvm;
-using System.Windows;
 using System.Windows.Media;
 
 namespace MasonryViewer.Common
 {
     public class UImage : BindableBase
     {
-        static public Thickness BorderThickness { get; set; } = new Thickness(1);
-        static public Thickness Margin { get; set; } = new Thickness(5);
-
-        public int index = -1;
+        public int Index { get; private set; } = -1;
 
         private string path = "";
         public string Path
@@ -41,7 +37,7 @@ namespace MasonryViewer.Common
 
         public UImage(int index)
         {
-            this.index = index;
+            Index = index;
         }
     }
 }
