@@ -1,5 +1,6 @@
 ﻿using MasonryViewer.ViewModels;
 using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -14,6 +15,10 @@ namespace MasonryViewer.Views
 
         private static readonly int minScaleBasis = 1000;
         private static readonly int maxScaleBasis = 50000;
+
+        private Point scrollViewerStartPoint = new Point();
+        private double scrollViewerStartHorizontalOffset = 0;
+        private double scrollViewerStartVerticalOffset = 0;
 
         public ImageViewer()
         {
@@ -48,63 +53,38 @@ namespace MasonryViewer.Views
 
         private void PreviousButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            ImageViewerViewModel vm = DataContext as ImageViewerViewModel;
-            SetImage(vm.ImageIndex - 1);
+            ToPreviousImage();
         }
 
         private void NextButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            ImageViewerViewModel vm = DataContext as ImageViewerViewModel;
-            SetImage(vm.ImageIndex + 1);
+            ToNextImage();
         }
 
         private void ImageScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            ImageViewerViewModel vm = DataContext as ImageViewerViewModel;
-            var scrollViewer = sender as ScrollViewer;
-            var image = FindName("Image") as Image;
-
             if (ModifierKeys.Control == Keyboard.Modifiers)
             {
-                int scaleBasis = vm.ScaleBasis;
                 if (e.Delta > 0)
                 {
-                    scaleBasis = (scaleBasis / 1000 + 1) * 1000;
+                    ZoomIn();
                 }
                 else if (e.Delta < 0)
                 {
-                    scaleBasis = (scaleBasis / 1000 - 1) * 1000;
+                    ZoomOut();
                 }
-
-                if (scaleBasis < minScaleBasis)
-                {
-                    scaleBasis = minScaleBasis;
-                }
-                if (scaleBasis > maxScaleBasis)
-                {
-                    scaleBasis = maxScaleBasis;
-                }
-
-                scrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
-                scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-                vm.SetScale(scaleBasis);
             }
             else
             {
                 if (e.Delta > 0)
                 {
-                    SetImage(vm.ImageIndex - 1);
+                    ToPreviousImage();
                 }
                 else if (e.Delta < 0)
                 {
-                    SetImage(vm.ImageIndex + 1);
+                    ToNextImage();
                 }
             }
-        }
-
-        private void ImageScrollViewer_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            HideWindow();
         }
 
         private void HideWindow()
@@ -113,6 +93,117 @@ namespace MasonryViewer.Views
             ParentWindow.ScrollToImage(vm.ImageIndex, true);
             vm.TurnToLoading();
             Hide();
+        }
+
+        private void ImageScrollViewer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var scrollViewer = sender as ScrollViewer;
+            if (e.ClickCount > 1)
+            {
+                HideWindow();
+            }
+            else
+            {
+                scrollViewerStartPoint = e.GetPosition(scrollViewer);
+                scrollViewerStartHorizontalOffset = scrollViewer.HorizontalOffset;
+                scrollViewerStartVerticalOffset = scrollViewer.VerticalOffset;
+                scrollViewer.CaptureMouse();
+            }
+        }
+
+        private void ImageScrollViewer_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            var scrollViewer = sender as ScrollViewer;
+            if (scrollViewer.IsMouseCaptured)
+            {
+                scrollViewer.ScrollToHorizontalOffset(scrollViewerStartHorizontalOffset +
+                    (scrollViewerStartPoint.X - e.GetPosition(scrollViewer).X));
+                scrollViewer.ScrollToVerticalOffset(scrollViewerStartVerticalOffset +
+                    (scrollViewerStartPoint.Y - e.GetPosition(scrollViewer).Y));
+            }
+        }
+
+        private void ImageScrollViewer_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            var scrollViewer = sender as ScrollViewer;
+            scrollViewer.ReleaseMouseCapture();
+        }
+
+        private void ZoomInButton_Click(object sender, RoutedEventArgs e)
+        {
+            ZoomIn();
+        }
+
+        private void ZoomOutButton_Click(object sender, RoutedEventArgs e)
+        {
+            ZoomOut();
+        }
+
+        private void ZoomIn()
+        {
+            ImageViewerViewModel vm = DataContext as ImageViewerViewModel;
+            int scaleBasis = vm.ScaleBasis;
+            scaleBasis = (scaleBasis / 1000 + 1) * 1000;
+            SetScale(scaleBasis);
+        }
+
+        private void ZoomOut()
+        {
+            ImageViewerViewModel vm = DataContext as ImageViewerViewModel;
+            int scaleBasis = vm.ScaleBasis;
+            scaleBasis = (scaleBasis / 1000 - 1) * 1000;
+            SetScale(scaleBasis);
+        }
+
+        private void ToPreviousImage()
+        {
+            ImageViewerViewModel vm = DataContext as ImageViewerViewModel;
+            SetImage(vm.ImageIndex - 1);
+        }
+
+        private void ToNextImage()
+        {
+            ImageViewerViewModel vm = DataContext as ImageViewerViewModel;
+            SetImage(vm.ImageIndex + 1);
+        }
+
+        private void SetScale(int scaleBasis)
+        {
+            var vm = DataContext as ImageViewerViewModel;
+            var scrollViewer = FindName("ImageScrollViewer") as ScrollViewer;
+
+            if (scaleBasis < minScaleBasis)
+            {
+                scaleBasis = minScaleBasis;
+            }
+            if (scaleBasis > maxScaleBasis)
+            {
+                scaleBasis = maxScaleBasis;
+            }
+
+            scrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+            scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+            vm.SetScale(scaleBasis);
+        }
+
+        private void MetroWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (Key.Up == e.Key)
+            {
+                ZoomIn();
+            }
+            else if (Key.Down == e.Key)
+            {
+                ZoomOut();
+            }
+            else if (Key.Left == e.Key)
+            {
+                ToPreviousImage();
+            }
+            else if ((Key.Right == e.Key) || (Key.Space == e.Key))
+            {
+                ToNextImage();
+            }
         }
     }
 }
