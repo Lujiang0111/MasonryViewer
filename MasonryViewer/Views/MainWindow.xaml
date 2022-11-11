@@ -47,10 +47,10 @@
                             IsSnapToTickEnabled="True"
                             Maximum="10"
                             Minimum="1"
+                            PreviewMouseUp="ImageCntPerLineSlider_PreviewMouseUp"
                             Style="{DynamicResource FlatSlider}"
                             TickFrequency="1"
                             TickPlacement="TopLeft"
-                            ValueChanged="ImageCntPerLineSlider_ValueChanged"
                             Value="3" />
                     </StackPanel>
                 </StackPanel>
@@ -71,13 +71,15 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border BorderBrush="{Binding BorderBrush}" BorderThickness="{Binding Source={x:Static ext:ImageManager.Instance}, Path=BorderThickness}">
+                        <Border
+                            Background="Transparent"
+                            BorderBrush="{Binding BorderBrush}"
+                            BorderThickness="{Binding Source={x:Static ext:ImageManager.Instance}, Path=BorderThickness}"
+                            MouseMove="ImageBorder_MouseMove"
+                            PreviewMouseLeftButtonDown="ImageBorder_PreviewMouseLeftButtonDown">
                             <Image
                                 Width="{Binding Width}"
                                 Margin="{Binding Source={x:Static ext:ImageManager.Instance}, Path=Margin}"
-                                MouseLeftButtonDown="Image_MouseLeftButtonDown"
-                                MouseMove="Image_MouseMove"
-                                PreviewMouseLeftButtonDown="Image_PreviewMouseLeftButtonDown"
                                 RenderOptions.BitmapScalingMode="NearestNeighbor"
                                 Stretch="Uniform">
                                 <Image.Source>

@@ -22,10 +22,10 @@ namespace MasonryViewer.Views
             Closing += MainWindow_Closing;
 
             InitializeComponent();
-            Refresh(true);
+            Refresh();
         }
 
-        public void ScrollToImageIndex(int imageIndex, bool isSelect)
+        public void ScrollToImage(int imageIndex, bool isSelect)
         {
             var vm = DataContext as MainWindowViewModel;
             if ((imageIndex < 0) || (imageIndex >= ImageManager.Instance.ImagePaths.Count)
@@ -59,13 +59,6 @@ namespace MasonryViewer.Views
             Application.Current.Shutdown();
         }
 
-        private void ImageCntPerLineSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            var vm = DataContext as MainWindowViewModel;
-            vm.OnImageCntPerLineChanged(e.NewValue);
-            Refresh(false);
-        }
-
         private void ImageScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             ShowMoreImage();
@@ -93,10 +86,10 @@ namespace MasonryViewer.Views
             return ret;
         }
 
-        private void Refresh(bool isResetLastSelectedImageIndex)
+        private void Refresh()
         {
             var vm = DataContext as MainWindowViewModel;
-            vm.Refresh(isResetLastSelectedImageIndex);
+            vm.Refresh();
 
             imageScrollViewerMaxHeight = 0;
             var scrollViewer = FindName("ImageScrollViewer") as ScrollViewer;
@@ -110,14 +103,14 @@ namespace MasonryViewer.Views
 
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            Refresh(true);
+            Refresh();
         }
 
         private void OpenImageFolderButton_Click(object sender, RoutedEventArgs e)
         {
             var vm = DataContext as MainWindowViewModel;
             vm.OpenImageFolder();
-            Refresh(true);
+            Refresh();
         }
 
         private void ImageScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -131,33 +124,13 @@ namespace MasonryViewer.Views
             scrollViewer.ScrollToVerticalOffset(newVerticalOffset);
         }
 
-        private void Image_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            imageStartPoint = e.GetPosition(null);
-        }
-
-        private void Image_MouseMove(object sender, MouseEventArgs e)
-        {
-            var image = sender as Image;
-            var uImage = image.DataContext as UImage;
-
-            var mpos = e.GetPosition(null);
-            Vector diff = imageStartPoint - mpos;
-            if (e.LeftButton == MouseButtonState.Pressed &&
-                Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance &&
-                Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
-            {
-                string[] files = { uImage.Path };
-                DataObject dataObject = new DataObject(DataFormats.FileDrop, files);
-                DragDrop.DoDragDrop(image, dataObject, DragDropEffects.Copy);
-            }
-        }
-
-        private void Image_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void ImageBorder_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var vm = DataContext as MainWindowViewModel;
-            var image = sender as Image;
-            var uImage = image.DataContext as UImage;
+            var border = sender as Border;
+            var uImage = border.DataContext as UImage;
+
+            imageStartPoint = e.GetPosition(null);
             if (1 == e.ClickCount)
             {
                 vm.SelectImage(uImage.Index);
@@ -176,6 +149,35 @@ namespace MasonryViewer.Views
                 {
                     imageViewer.Show();
                 }
+            }
+        }
+
+        private void ImageBorder_MouseMove(object sender, MouseEventArgs e)
+        {
+            var border = sender as Border;
+            var uImage = border.DataContext as UImage;
+
+            Vector diff = imageStartPoint - e.GetPosition(null);
+            if (e.LeftButton == MouseButtonState.Pressed &&
+                Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance &&
+                Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+            {
+                string[] files = { uImage.Path };
+                DataObject dataObject = new DataObject(DataFormats.FileDrop, files);
+                DragDrop.DoDragDrop(border, dataObject, DragDropEffects.Copy);
+            }
+        }
+
+        private void ImageCntPerLineSlider_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            var vm = DataContext as MainWindowViewModel;
+            var slider = sender as Slider;
+            if ((int)slider.Value != vm.ImageCntPerLine)
+            {
+                vm.OnImageCntPerLineChanged((int)slider.Value);
+                int selectedImageIndex = vm.SelectedImageIndex;
+                Refresh();
+                ScrollToImage(selectedImageIndex, true);
             }
         }
     }

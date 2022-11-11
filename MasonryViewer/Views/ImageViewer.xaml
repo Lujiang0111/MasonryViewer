@@ -16,7 +16,7 @@
                     Margin="5,0"
                     VerticalAlignment="Center"
                     FontSize="12"
-                    Text="{Binding Scale, StringFormat={}{0:0.0%}}" />
+                    Text="{Binding Scale, StringFormat={}{0:0.00%}}" />
             </Button>
             <StackPanel Orientation="Horizontal">
                 <Button Click="PreviousButton_Click">

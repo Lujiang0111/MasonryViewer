@@ -14,6 +14,7 @@ namespace MasonryViewer.ViewModels
     {
         public DelegateCommand OpenSettingsFlyoutCommand { get; set; } = null;
         public int NextShowImageIndex { get; private set; } = 0;
+        public int SelectedImageIndex { get; set; } = -1;
 
         private string title = "";
         public string Title
@@ -44,7 +45,6 @@ namespace MasonryViewer.ViewModels
         }
 
         private int imagePanelWidth = 0;
-        private int selectedImageIndex = -1;
 
         public MainWindowViewModel()
         {
@@ -76,9 +76,9 @@ namespace MasonryViewer.ViewModels
             }
         }
 
-        public void OnImageCntPerLineChanged(double value)
+        public void OnImageCntPerLineChanged(int value)
         {
-            ImageCntPerLine = (int)value;
+            ImageCntPerLine = value;
         }
 
         public bool ShowMoreImage()
@@ -99,7 +99,7 @@ namespace MasonryViewer.ViewModels
                 };
                 UImages.Add(uImage);
 
-                if (NextShowImageIndex == selectedImageIndex)
+                if (NextShowImageIndex == SelectedImageIndex)
                 {
                     SelectImage(uImage.Index);
                 }
@@ -110,28 +110,24 @@ namespace MasonryViewer.ViewModels
             return ret;
         }
 
-        public void Refresh(bool isResetSelectedImageIndex)
+        public void Refresh()
         {
             UImages.Clear();
             NextShowImageIndex = 0;
-
-            if (isResetSelectedImageIndex)
-            {
-                selectedImageIndex = -1;
-            }
+            SelectedImageIndex = -1;
         }
 
         public void SelectImage(int index)
         {
-            if ((selectedImageIndex > 0) && (selectedImageIndex < UImages.Count))
+            if ((SelectedImageIndex >= 0) && (SelectedImageIndex < UImages.Count))
             {
-                UImages[selectedImageIndex].BorderBrush = new SolidColorBrush(Colors.Transparent);
+                UImages[SelectedImageIndex].BorderBrush = new SolidColorBrush(Colors.Transparent);
             }
 
-            if ((index > 0) && (index < UImages.Count))
+            if ((index >= 0) && (index < UImages.Count))
             {
                 UImages[index].BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#b47cff"));
-                selectedImageIndex = index;
+                SelectedImageIndex = index;
             }
         }
 

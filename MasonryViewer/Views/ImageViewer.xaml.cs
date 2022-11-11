@@ -12,8 +12,8 @@ namespace MasonryViewer.Views
     {
         public MainWindow ParentWindow { get; set; } = null;
 
-        private static readonly int minScalePercent = 10;
-        private static readonly int maxScalePercent = 500;
+        private static readonly int minScaleBasis = 1000;
+        private static readonly int maxScaleBasis = 50000;
 
         public ImageViewer()
         {
@@ -43,7 +43,7 @@ namespace MasonryViewer.Views
             var scrollViewer = FindName("ImageScrollViewer") as ScrollViewer;
             ScrollContentPresenter content = (ScrollContentPresenter)scrollViewer.Template.FindName("PART_ScrollContentPresenter", scrollViewer);
             double scale = Math.Min(content.ActualWidth / image.Source.Width, content.ActualHeight / image.Source.Height);
-            vm.Scale = ((scale > 0) && (scale < 1)) ? (scale) : (1);
+            vm.SetScale(((scale > 0) && (scale < 1)) ? (int)(scale * 10000) : (10000));
         }
 
         private void PreviousButton_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -66,28 +66,28 @@ namespace MasonryViewer.Views
 
             if (ModifierKeys.Control == Keyboard.Modifiers)
             {
-                int scalePercent = (int)(vm.Scale * 100);
+                int scaleBasis = vm.ScaleBasis;
                 if (e.Delta > 0)
                 {
-                    scalePercent = (scalePercent / 10 + 1) * 10;
+                    scaleBasis = (scaleBasis / 1000 + 1) * 1000;
                 }
                 else if (e.Delta < 0)
                 {
-                    scalePercent = (scalePercent / 10 - 1) * 10;
+                    scaleBasis = (scaleBasis / 1000 - 1) * 1000;
                 }
 
-                if (scalePercent < minScalePercent)
+                if (scaleBasis < minScaleBasis)
                 {
-                    scalePercent = minScalePercent;
+                    scaleBasis = minScaleBasis;
                 }
-                if (scalePercent > maxScalePercent)
+                if (scaleBasis > maxScaleBasis)
                 {
-                    scalePercent = maxScalePercent;
+                    scaleBasis = maxScaleBasis;
                 }
 
                 scrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
                 scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
-                vm.Scale = (double)scalePercent / 100;
+                vm.SetScale(scaleBasis);
             }
             else
             {
@@ -110,7 +110,7 @@ namespace MasonryViewer.Views
         private void HideWindow()
         {
             var vm = DataContext as ImageViewerViewModel;
-            ParentWindow.ScrollToImageIndex(vm.ImageIndex, true);
+            ParentWindow.ScrollToImage(vm.ImageIndex, true);
             vm.TurnToLoading();
             Hide();
         }

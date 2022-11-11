@@ -6,7 +6,7 @@ namespace MasonryViewer.Extensions
 {
     public class ImageManager : BindableBase
     {
-        public string LoadingImage { get; set; } = "../Resources/Loading.png";
+        public string LoadingImage { get; set; } = "pack://application:,,,/Resources/Loading.png";
         public string ImageFolderPath { get; set; } = "";
         public List<string> ImagePaths { get; set; } = new List<string>();
 

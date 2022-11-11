@@ -7,6 +7,7 @@ namespace MasonryViewer.ViewModels
     public class ImageViewerViewModel : BindableBase
     {
         public int ImageIndex { get; private set; } = 0;
+        public int ScaleBasis { get; private set; } = 0;
 
         private string title = "";
         public string Title
@@ -26,7 +27,13 @@ namespace MasonryViewer.ViewModels
         public double Scale
         {
             get { return scale; }
-            set { SetProperty(ref scale, value); }
+            private set { SetProperty(ref scale, value); }
+        }
+
+        public void SetScale(int scaleBasis)
+        {
+            ScaleBasis = scaleBasis;
+            Scale = (double)ScaleBasis / 10000;
         }
 
         public ImageViewerViewModel()
