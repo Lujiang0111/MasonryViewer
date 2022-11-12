@@ -15,13 +15,27 @@ namespace MasonryViewer.Views
     {
         private Point imageStartPoint = new Point();
         private ImageViewer imageViewer = null;
-
+        private double scrollViewerWidth = -1;
         public MainWindow()
         {
             Closing += MainWindow_Closing;
 
             InitializeComponent();
+
+            var vm = DataContext as MainWindowViewModel;
             Refresh();
+
+            var ImageCntPerLineSlider = FindName("ImageCntPerLineSlider") as Slider;
+            ImageCntPerLineSlider.Value = SettingManager.Instance.ImageCntPerLine;
+
+            var MouseWheelPrecisionSlider = FindName("MouseWheelPrecisionSlider") as Slider;
+            MouseWheelPrecisionSlider.Value = SettingManager.Instance.MouseWheelPrecision;
+            MouseWheelPrecisionSlider.Ticks.Clear();
+            for (int i = (int)MouseWheelPrecisionSlider.Minimum + 1; i < (int)MouseWheelPrecisionSlider.Maximum; ++i)
+            {
+                MouseWheelPrecisionSlider.Ticks.Add(i);
+            }
+            MouseWheelPrecisionSlider.ValueChanged += MouseWheelPrecisionSlider_ValueChanged;
         }
 
         public void ScrollToImage(int imageIndex)
@@ -47,13 +61,13 @@ namespace MasonryViewer.Views
             int vcerticalAreaCnt;
             do
             {
-                vcerticalAreaCnt = (vm.NextShowImageIndex - 1) / vm.ImageCntPerLine;
+                vcerticalAreaCnt = (vm.NextShowImageIndex - 1) / SettingManager.Instance.ImageCntPerLine;
                 double vcerticalOffset = (vcerticalAreaCnt > 0)
-                    ? (scrollViewer.ScrollableHeight / vcerticalAreaCnt * (imageIndex / vm.ImageCntPerLine))
+                    ? (scrollViewer.ScrollableHeight / vcerticalAreaCnt * (imageIndex / SettingManager.Instance.ImageCntPerLine))
                     : 0;
                 scrollViewer.ScrollToVerticalOffset(vcerticalOffset);
                 UpdateLayout();
-            } while ((vm.NextShowImageIndex - 1) / vm.ImageCntPerLine != vcerticalAreaCnt);
+            } while ((vm.NextShowImageIndex - 1) / SettingManager.Instance.ImageCntPerLine != vcerticalAreaCnt);
 
             vm.SelectImage(imageIndex);
         }
@@ -76,7 +90,7 @@ namespace MasonryViewer.Views
             bool ret = false;
             if (null != scrollViewer)
             {
-                int vcerticalAreaCnt = (vm.NextShowImageIndex - 1) / vm.ImageCntPerLine;
+                int vcerticalAreaCnt = (vm.NextShowImageIndex - 1) / SettingManager.Instance.ImageCntPerLine;
                 double vcerticalOffsetTh = (vcerticalAreaCnt > 0)
                     ? (scrollViewer.ScrollableHeight / vcerticalAreaCnt * (vcerticalAreaCnt - 1))
                     : 0;
@@ -122,19 +136,28 @@ namespace MasonryViewer.Views
             ScrollContentPresenter content = (ScrollContentPresenter)scrollViewer.Template.FindName("PART_ScrollContentPresenter", scrollViewer);
             vm.OnImagePanelSizeChanged(content.ActualWidth);
 
-            double newVerticalOffset = (e.PreviousSize.Width > 0) ? (scrollViewer.VerticalOffset * e.NewSize.Width / e.PreviousSize.Width) : (0);
-            scrollViewer.ScrollToVerticalOffset(newVerticalOffset);
+            if (scrollViewerWidth <= 0)
+            {
+                scrollViewerWidth = e.NewSize.Width;
+            }
+            else if (Math.Abs(e.NewSize.Width - scrollViewerWidth) > 1)
+            {
+                double newVerticalOffset = scrollViewer.VerticalOffset * e.NewSize.Width / scrollViewerWidth;
+                scrollViewerWidth = e.NewSize.Width;
+                scrollViewer.ScrollToVerticalOffset(newVerticalOffset);
+            }
         }
 
         private void ImageBorder_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            var vm = DataContext as MainWindowViewModel;
             var border = sender as Border;
             var uImage = border.DataContext as UImage;
 
             imageStartPoint = e.GetPosition(null);
             if (1 == e.ClickCount)
             {
-                ScrollToImage(uImage.Index);
+                vm.SelectImage(uImage.Index);
             }
             else if (e.ClickCount > 1)
             {
@@ -162,9 +185,9 @@ namespace MasonryViewer.Views
         {
             var vm = DataContext as MainWindowViewModel;
             var slider = sender as Slider;
-            if ((int)slider.Value != vm.ImageCntPerLine)
+            if ((int)slider.Value != SettingManager.Instance.ImageCntPerLine)
             {
-                vm.OnImageCntPerLineChanged((int)slider.Value);
+                SettingManager.Instance.SetImageCntPerLine((int)slider.Value);
                 int selectedImageIndex = vm.SelectedImageIndex;
                 Refresh();
                 ScrollToImage(selectedImageIndex);
@@ -173,9 +196,10 @@ namespace MasonryViewer.Views
 
         private void Border_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            var vm = DataContext as MainWindowViewModel;
             var border = sender as Border;
             var uImage = border.DataContext as UImage;
-            ScrollToImage(uImage.Index);
+            vm.SelectImage(uImage.Index);
         }
 
         private void MetroWindow_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -183,11 +207,11 @@ namespace MasonryViewer.Views
             var vm = DataContext as MainWindowViewModel;
             if (Key.Up == e.Key)
             {
-                ScrollToImage(vm.SelectedImageIndex - vm.ImageCntPerLine);
+                ScrollToImage(vm.SelectedImageIndex - SettingManager.Instance.ImageCntPerLine);
             }
             else if (Key.Down == e.Key)
             {
-                ScrollToImage(vm.SelectedImageIndex + vm.ImageCntPerLine);
+                ScrollToImage(vm.SelectedImageIndex + SettingManager.Instance.ImageCntPerLine);
             }
             else if (Key.Left == e.Key)
             {
@@ -228,6 +252,27 @@ namespace MasonryViewer.Views
         private void ImageScrollViewer_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             e.Handled = true;
+        }
+
+        private void ImageScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            var scrollViewer = sender as ScrollViewer;
+
+            e.Handled = true;
+            if (e.Delta > 0)
+            {
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta * SettingManager.Instance.MouseWheelPrecision);
+            }
+            else if (e.Delta < 0)
+            {
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - e.Delta * SettingManager.Instance.MouseWheelPrecision);
+            }
+        }
+
+        private void MouseWheelPrecisionSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            var slider = sender as Slider;
+            SettingManager.Instance.SetMouseWheelPrecision(slider.Value);
         }
     }
 }

@@ -38,10 +38,17 @@
                 <StackPanel>
                     <StackPanel Margin="10,0">
                         <StackPanel Orientation="Horizontal">
-                            <Label Content="每行显示图片数量：" FontSize="15" />
-                            <Label Content="{Binding ImageCntPerLine}" FontSize="15" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="15"
+                                Text="每行显示图片数量：" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="15"
+                                Text="{Binding Source={x:Static ext:SettingManager.Instance}, Path=ImageCntPerLine}" />
                         </StackPanel>
                         <Slider
+                            x:Name="ImageCntPerLineSlider"
                             Margin="0,5,0,0"
                             AutoToolTipPlacement="TopLeft"
                             AutoToolTipPrecision="0"
@@ -54,6 +61,26 @@
                             TickPlacement="TopLeft"
                             Value="4" />
                     </StackPanel>
+                    <StackPanel Margin="10,10,10,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="15"
+                                Text="鼠标滚轮精度：" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="15"
+                                Text="{Binding Source={x:Static ext:SettingManager.Instance}, Path=MouseWheelPrecision, StringFormat=N2}" />
+                        </StackPanel>
+                        <Slider
+                            x:Name="MouseWheelPrecisionSlider"
+                            Margin="0,5,0,0"
+                            Maximum="3"
+                            Minimum="0.1"
+                            Style="{DynamicResource FlatSlider}"
+                            TickPlacement="TopLeft"
+                            Value="4" />
+                    </StackPanel>
                 </StackPanel>
             </mah:Flyout>
         </mah:FlyoutsControl>
@@ -62,6 +89,7 @@
         <ScrollViewer
             x:Name="ImageScrollViewer"
             PreviewKeyDown="ImageScrollViewer_PreviewKeyDown"
+            PreviewMouseWheel="ImageScrollViewer_PreviewMouseWheel"
             ScrollChanged="ImageScrollViewer_ScrollChanged"
             SizeChanged="ImageScrollViewer_SizeChanged"
             VerticalScrollBarVisibility="Visible">

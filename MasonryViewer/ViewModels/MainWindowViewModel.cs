@@ -33,13 +33,6 @@ namespace MasonryViewer.ViewModels
             set { SetProperty(ref isSettingsFlyoutOpen, value); }
         }
 
-        private int imageCntPerLine = 4;
-        public int ImageCntPerLine
-        {
-            get { return imageCntPerLine; }
-            set { SetProperty(ref imageCntPerLine, value); }
-        }
-
         private ObservableCollection<UImage> uImages = new ObservableCollection<UImage>();
         public ObservableCollection<UImage> UImages
         {
@@ -92,15 +85,10 @@ namespace MasonryViewer.ViewModels
             }
         }
 
-        public void OnImageCntPerLineChanged(int value)
-        {
-            ImageCntPerLine = value;
-        }
-
         public bool ShowMoreImage()
         {
             bool ret = false;
-            for (int index = 0; index < ImageCntPerLine; ++index)
+            for (int index = 0; index < SettingManager.Instance.ImageCntPerLine; ++index)
             {
                 if (NextShowImageIndex >= ImageManager.Instance.ImagePaths.Count)
                 {
@@ -111,7 +99,7 @@ namespace MasonryViewer.ViewModels
                 {
                     Path = ImageManager.Instance.ImagePaths[NextShowImageIndex],
                     Width = CalculateImageWidth(),
-                    DecodeWidth = screenDpiWidth / ImageCntPerLine
+                    DecodeWidth = screenDpiWidth / SettingManager.Instance.ImageCntPerLine
                 };
                 UImages.Add(uImage);
 
@@ -144,7 +132,7 @@ namespace MasonryViewer.ViewModels
 
         private int CalculateImageWidth()
         {
-            return imagePanelWidth / ImageCntPerLine - (int)(ImageManager.Instance.Margin.Left + ImageManager.Instance.BorderThickness.Left) * 2;
+            return imagePanelWidth / SettingManager.Instance.ImageCntPerLine - (int)(ImageManager.Instance.Margin.Left + ImageManager.Instance.BorderThickness.Left) * 2;
         }
 
         private void OpenSettingsFlyout()

@@ -10,7 +10,7 @@ namespace MasonryViewer.Extensions
         public string ImageFolderPath { get; set; } = "";
         public List<string> ImagePaths { get; set; } = new List<string>();
 
-        private Thickness borderThickness = new Thickness(1);
+        private Thickness borderThickness = new Thickness(2);
         public Thickness BorderThickness
         {
             get { return borderThickness; }

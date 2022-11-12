@@ -41,7 +41,7 @@ namespace MasonryViewer.Views
             e.Cancel = true;
         }
 
-        private void Image_SizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
+        private void Image_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             ImageViewerViewModel vm = DataContext as ImageViewerViewModel;
             var image = sender as Image;
@@ -51,12 +51,12 @@ namespace MasonryViewer.Views
             vm.SetScale(((scale > 0) && (scale < 1)) ? (int)(scale * 10000) : (10000));
         }
 
-        private void PreviousButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void PreviousButton_Click(object sender, RoutedEventArgs e)
         {
             ToPreviousImage();
         }
 
-        private void NextButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void NextButton_Click(object sender, RoutedEventArgs e)
         {
             ToNextImage();
         }
