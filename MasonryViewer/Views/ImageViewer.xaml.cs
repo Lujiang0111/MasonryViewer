@@ -26,13 +26,18 @@ namespace MasonryViewer.Views
             Closing += ImageViewer_Closing;
         }
 
-        public void SetImage(int imageIndex)
+        public bool SetImage(int imageIndex)
         {
             var vm = DataContext as ImageViewerViewModel;
-            vm.SetImageIndex(imageIndex);
             var scrollViewer = FindName("ImageScrollViewer") as ScrollViewer;
+
             scrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
             scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
+
+            vm.TurnToLoading();
+            UpdateLayout();
+
+            return vm.SetImageIndex(imageIndex);
         }
 
         private void ImageViewer_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -104,16 +109,17 @@ namespace MasonryViewer.Views
         private void HideWindow()
         {
             var vm = DataContext as ImageViewerViewModel;
-            ParentWindow.ScrollToImage(vm.ImageIndex);
             vm.TurnToLoading();
             Hide();
         }
 
         private void ImageScrollViewer_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            var vm = DataContext as ImageViewerViewModel;
             var scrollViewer = sender as ScrollViewer;
             if (e.ClickCount > 1)
             {
+                ParentWindow.ScrollToImage(vm.ImageIndex);
                 HideWindow();
             }
             else
@@ -202,6 +208,7 @@ namespace MasonryViewer.Views
 
         private void MetroWindow_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            var vm = DataContext as ImageViewerViewModel;
             if (Key.Up == e.Key)
             {
                 ZoomIn();
@@ -222,6 +229,17 @@ namespace MasonryViewer.Views
             {
                 HideWindow();
             }
+            else if (Key.Enter == e.Key)
+            {
+                ParentWindow.ScrollToImage(vm.ImageIndex);
+                HideWindow();
+            }
+        }
+
+        private void MetroWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            ImageViewerViewModel vm = DataContext as ImageViewerViewModel;
+            SetImage(vm.ImageIndex);
         }
     }
 }

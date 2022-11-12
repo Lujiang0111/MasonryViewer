@@ -1,6 +1,8 @@
 ﻿using Prism.Mvvm;
+using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Media.Imaging;
 
 namespace MasonryViewer.Extensions
 {
@@ -22,6 +24,31 @@ namespace MasonryViewer.Extensions
         {
             get { return margin; }
             set { SetProperty(ref margin, value); }
+        }
+
+        public bool TryLoadImage(int index)
+        {
+            if ((index < 0) || (index >= ImagePaths.Count))
+            {
+                return false;
+            }
+
+            try
+            {
+                BitmapImage bitmapImage = new BitmapImage();
+                bitmapImage.BeginInit();
+                bitmapImage.DecodePixelWidth = 1;
+                bitmapImage.DecodePixelHeight = 1;
+                bitmapImage.UriSource = new Uri(ImagePaths[index]);
+                bitmapImage.EndInit();
+            }
+            catch
+            {
+                ImagePaths.RemoveAt(index);
+                return false;
+            }
+
+            return true;
         }
 
         public static ImageManager Instance { get; private set; }

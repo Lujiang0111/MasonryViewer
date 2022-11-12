@@ -9,7 +9,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 namespace MasonryViewer.ViewModels
 {
@@ -92,18 +91,13 @@ namespace MasonryViewer.ViewModels
             int newImageCnt = 0;
             while (newImageCnt < SettingManager.Instance.ImageCntPerLine)
             {
-                if (NextShowImageIndex >= ImageManager.Instance.ImagePaths.Count)
+                if ((NextShowImageIndex < 0) || (NextShowImageIndex >= ImageManager.Instance.ImagePaths.Count))
                 {
                     break;
                 }
 
-                try
+                if (!ImageManager.Instance.TryLoadImage(NextShowImageIndex))
                 {
-                    BitmapImage bitmapImage = new BitmapImage(new Uri(ImageManager.Instance.ImagePaths[NextShowImageIndex]));
-                }
-                catch
-                {
-                    ImageManager.Instance.ImagePaths.RemoveAt(NextShowImageIndex);
                     continue;
                 }
 

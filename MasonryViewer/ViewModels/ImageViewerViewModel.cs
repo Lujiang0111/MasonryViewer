@@ -45,15 +45,23 @@ namespace MasonryViewer.ViewModels
             TurnToLoading();
         }
 
-        public void SetImageIndex(int imageIndex)
+        public bool SetImageIndex(int imageIndex)
         {
-            if ((imageIndex >= 0) && (imageIndex < ImageManager.Instance.ImagePaths.Count))
+            if ((imageIndex < 0) || (imageIndex >= ImageManager.Instance.ImagePaths.Count))
             {
-                ImageIndex = imageIndex;
-                ImagePath = ImageManager.Instance.ImagePaths[ImageIndex];
-                char[] delimiterChars = { '/', '\\' };
-                Title = ImagePath.Split(delimiterChars).LastOrDefault();
+                return false;
             }
+
+            if (!ImageManager.Instance.TryLoadImage(imageIndex))
+            {
+                return false;
+            }
+
+            ImageIndex = imageIndex;
+            ImagePath = ImageManager.Instance.ImagePaths[ImageIndex];
+            char[] delimiterChars = { '/', '\\' };
+            Title = ImagePath.Split(delimiterChars).LastOrDefault();
+            return true;
         }
 
         public void TurnToLoading()

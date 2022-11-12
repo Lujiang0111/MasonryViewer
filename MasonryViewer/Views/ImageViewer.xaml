@@ -9,7 +9,8 @@
     Width="1024"
     Height="768"
     prism:ViewModelLocator.AutoWireViewModel="True"
-    PreviewKeyDown="MetroWindow_PreviewKeyDown">
+    PreviewKeyDown="MetroWindow_PreviewKeyDown"
+    SizeChanged="MetroWindow_SizeChanged">
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands>
             <Button>
