@@ -9,7 +9,8 @@
     Title="{Binding Title}"
     Width="800"
     Height="450"
-    prism:ViewModelLocator.AutoWireViewModel="True">
+    prism:ViewModelLocator.AutoWireViewModel="True"
+    PreviewKeyDown="MetroWindow_PreviewKeyDown">
     <mah:MetroWindow.Resources>
         <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.FlatSlider.xaml" />
     </mah:MetroWindow.Resources>
@@ -46,12 +47,12 @@
                             AutoToolTipPrecision="0"
                             IsSnapToTickEnabled="True"
                             Maximum="10"
-                            Minimum="1"
+                            Minimum="2"
                             PreviewMouseUp="ImageCntPerLineSlider_PreviewMouseUp"
                             Style="{DynamicResource FlatSlider}"
                             TickFrequency="1"
                             TickPlacement="TopLeft"
-                            Value="3" />
+                            Value="4" />
                     </StackPanel>
                 </StackPanel>
             </mah:Flyout>
@@ -60,10 +61,11 @@
     <Grid>
         <ScrollViewer
             x:Name="ImageScrollViewer"
+            PreviewKeyDown="ImageScrollViewer_PreviewKeyDown"
             ScrollChanged="ImageScrollViewer_ScrollChanged"
             SizeChanged="ImageScrollViewer_SizeChanged"
             VerticalScrollBarVisibility="Visible">
-            <ItemsControl ItemsSource="{Binding UImages}">
+            <ItemsControl x:Name="ImageItemsControl" ItemsSource="{Binding UImages}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel />
@@ -76,11 +78,20 @@
                             BorderBrush="{Binding BorderBrush}"
                             BorderThickness="{Binding Source={x:Static ext:ImageManager.Instance}, Path=BorderThickness}"
                             MouseMove="ImageBorder_MouseMove"
-                            PreviewMouseLeftButtonDown="ImageBorder_PreviewMouseLeftButtonDown">
+                            PreviewMouseLeftButtonDown="ImageBorder_PreviewMouseLeftButtonDown"
+                            PreviewMouseRightButtonDown="Border_PreviewMouseRightButtonDown">
+                            <Border.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem
+                                        Command="{Binding DataContext.CopyImageCommand, Source={x:Reference ImageItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        Header="复制" />
+                                </ContextMenu>
+                            </Border.ContextMenu>
                             <Image
                                 Width="{Binding Width}"
                                 Margin="{Binding Source={x:Static ext:ImageManager.Instance}, Path=Margin}"
-                                RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                RenderOptions.BitmapScalingMode="HighQuality"
                                 Stretch="Uniform">
                                 <Image.Source>
                                     <BitmapImage DecodePixelWidth="{Binding DecodeWidth}" UriSource="{Binding Path}" />

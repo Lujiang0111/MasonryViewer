@@ -63,8 +63,19 @@ namespace MasonryViewer.Views
 
         private void ImageScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
+            var scrollViewer = sender as ScrollViewer;
+            var image = FindName("Image") as Image;
             if (ModifierKeys.Control == Keyboard.Modifiers)
             {
+                Point point = e.GetPosition(image);
+                double xRatio = (image.ActualWidth > 0) ? (point.X / image.ActualWidth) : 0;
+                xRatio = Math.Min(xRatio, 1);
+                xRatio = Math.Max(xRatio, 0);
+
+                double yRatio = (image.ActualHeight > 0) ? (point.Y / image.ActualHeight) : 0;
+                yRatio = Math.Min(yRatio, 1);
+                yRatio = Math.Max(yRatio, 0);
+
                 if (e.Delta > 0)
                 {
                     ZoomIn();
@@ -73,6 +84,9 @@ namespace MasonryViewer.Views
                 {
                     ZoomOut();
                 }
+
+                scrollViewer.ScrollToHorizontalOffset(xRatio * scrollViewer.ScrollableWidth);
+                scrollViewer.ScrollToVerticalOffset(yRatio * scrollViewer.ScrollableHeight);
             }
             else
             {
@@ -90,7 +104,7 @@ namespace MasonryViewer.Views
         private void HideWindow()
         {
             var vm = DataContext as ImageViewerViewModel;
-            ParentWindow.ScrollToImage(vm.ImageIndex, true);
+            ParentWindow.ScrollToImage(vm.ImageIndex);
             vm.TurnToLoading();
             Hide();
         }
@@ -203,6 +217,10 @@ namespace MasonryViewer.Views
             else if ((Key.Right == e.Key) || (Key.Space == e.Key))
             {
                 ToNextImage();
+            }
+            else if (Key.Escape == e.Key)
+            {
+                HideWindow();
             }
         }
     }

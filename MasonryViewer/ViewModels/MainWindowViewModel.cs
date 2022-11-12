@@ -2,10 +2,12 @@
 using MasonryViewer.Extensions;
 using Prism.Commands;
 using Prism.Mvvm;
+using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Media;
 
 namespace MasonryViewer.ViewModels
@@ -13,6 +15,7 @@ namespace MasonryViewer.ViewModels
     public class MainWindowViewModel : BindableBase
     {
         public DelegateCommand OpenSettingsFlyoutCommand { get; set; } = null;
+        public DelegateCommand<UImage> CopyImageCommand { get; set; } = null;
         public int NextShowImageIndex { get; private set; } = 0;
         public int SelectedImageIndex { get; set; } = -1;
 
@@ -44,12 +47,22 @@ namespace MasonryViewer.ViewModels
             set { SetProperty(ref uImages, value); }
         }
 
+        [DllImport("gdi32.dll", EntryPoint = "GetDeviceCaps", SetLastError = true)]
+        public static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+
         private int imagePanelWidth = 0;
+        private int screenDpiWidth = 0;
 
         public MainWindowViewModel()
         {
             Title = string.Format("{0} v{1}", Assembly.GetEntryAssembly().GetName().Name, Assembly.GetExecutingAssembly().GetName().Version.ToString());
+
             OpenSettingsFlyoutCommand = new DelegateCommand(OpenSettingsFlyout);
+            CopyImageCommand = new DelegateCommand<UImage>(CopyImage);
+
+            var g = System.Drawing.Graphics.FromHwnd(IntPtr.Zero);
+            IntPtr desktop = g.GetHdc();
+            screenDpiWidth = GetDeviceCaps(desktop, 118);
         }
 
         public void OpenImageFolder()
@@ -64,6 +77,9 @@ namespace MasonryViewer.ViewModels
                     Where(s => s.EndsWith(".bmp") || s.EndsWith(".jpg") || s.EndsWith(".png") ||
                     s.EndsWith(".tif") || s.EndsWith(".tiff") || s.EndsWith(".gif")).ToList();
                 ImageManager.Instance.ImagePaths.Sort();
+
+                char[] delimiterChars = { '/', '\\' };
+                Title = ImageManager.Instance.ImageFolderPath.Split(delimiterChars).LastOrDefault();
             }
         }
 
@@ -95,14 +111,9 @@ namespace MasonryViewer.ViewModels
                 {
                     Path = ImageManager.Instance.ImagePaths[NextShowImageIndex],
                     Width = CalculateImageWidth(),
-                    DecodeWidth = (int)System.Windows.SystemParameters.PrimaryScreenWidth / ImageCntPerLine
+                    DecodeWidth = screenDpiWidth / ImageCntPerLine
                 };
                 UImages.Add(uImage);
-
-                if (NextShowImageIndex == SelectedImageIndex)
-                {
-                    SelectImage(uImage.Index);
-                }
 
                 ret = true;
                 ++NextShowImageIndex;
@@ -139,6 +150,15 @@ namespace MasonryViewer.ViewModels
         private void OpenSettingsFlyout()
         {
             IsSettingsFlyoutOpen = !IsSettingsFlyoutOpen;
+        }
+
+        private void CopyImage(UImage uImage)
+        {
+            System.Collections.Specialized.StringCollection paths = new System.Collections.Specialized.StringCollection
+            {
+                uImage.Path
+            };
+            System.Windows.Forms.Clipboard.SetFileDropList(paths);
         }
     }
 }

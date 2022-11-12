@@ -1,4 +1,5 @@
 ﻿using MasonryViewer.Extensions;
+using Prism.Commands;
 using Prism.Mvvm;
 using System.Linq;
 
@@ -6,6 +7,7 @@ namespace MasonryViewer.ViewModels
 {
     public class ImageViewerViewModel : BindableBase
     {
+        public DelegateCommand CopyImageCommand { get; set; } = null;
         public int ImageIndex { get; private set; } = 0;
         public int ScaleBasis { get; private set; } = 0;
 
@@ -39,6 +41,7 @@ namespace MasonryViewer.ViewModels
         public ImageViewerViewModel()
         {
             Title = "Image Viewer";
+            CopyImageCommand = new DelegateCommand(CopyImage);
             TurnToLoading();
         }
 
@@ -56,6 +59,15 @@ namespace MasonryViewer.ViewModels
         public void TurnToLoading()
         {
             ImagePath = ImageManager.Instance.LoadingImage;
+        }
+
+        private void CopyImage()
+        {
+            System.Collections.Specialized.StringCollection paths = new System.Collections.Specialized.StringCollection
+            {
+                ImagePath
+            };
+            System.Windows.Forms.Clipboard.SetFileDropList(paths);
         }
     }
 }

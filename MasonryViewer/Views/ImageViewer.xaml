@@ -44,7 +44,13 @@
             PreviewMouseLeftButtonUp="ImageScrollViewer_PreviewMouseLeftButtonUp"
             PreviewMouseMove="ImageScrollViewer_PreviewMouseMove"
             PreviewMouseWheel="ImageScrollViewer_PreviewMouseWheel">
+            <ScrollViewer.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Command="{Binding CopyImageCommand}" Header="复制" />
+                </ContextMenu>
+            </ScrollViewer.ContextMenu>
             <Image
+                x:Name="Image"
                 RenderOptions.BitmapScalingMode="HighQuality"
                 SizeChanged="Image_SizeChanged"
                 Source="{Binding ImagePath}"
