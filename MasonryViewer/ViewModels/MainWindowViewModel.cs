@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace MasonryViewer.ViewModels
 {
@@ -88,11 +89,22 @@ namespace MasonryViewer.ViewModels
         public bool ShowMoreImage()
         {
             bool ret = false;
-            for (int index = 0; index < SettingManager.Instance.ImageCntPerLine; ++index)
+            int newImageCnt = 0;
+            while (newImageCnt < SettingManager.Instance.ImageCntPerLine)
             {
                 if (NextShowImageIndex >= ImageManager.Instance.ImagePaths.Count)
                 {
                     break;
+                }
+
+                try
+                {
+                    BitmapImage bitmapImage = new BitmapImage(new Uri(ImageManager.Instance.ImagePaths[NextShowImageIndex]));
+                }
+                catch
+                {
+                    ImageManager.Instance.ImagePaths.RemoveAt(NextShowImageIndex);
+                    continue;
                 }
 
                 UImage uImage = new UImage(NextShowImageIndex)
@@ -103,8 +115,9 @@ namespace MasonryViewer.ViewModels
                 };
                 UImages.Add(uImage);
 
-                ret = true;
+                ++newImageCnt;
                 ++NextShowImageIndex;
+                ret = true;
             };
             return ret;
         }
