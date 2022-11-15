@@ -1,4 +1,5 @@
-﻿using MasonryViewer.ViewModels;
+﻿using MasonryViewer.Extensions;
+using MasonryViewer.ViewModels;
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,6 +31,11 @@ namespace MasonryViewer.Views
         {
             var vm = DataContext as ImageViewerViewModel;
             var scrollViewer = FindName("ImageScrollViewer") as ScrollViewer;
+
+            if ((imageIndex < 0) || (imageIndex >= ImageManager.Instance.ImagePaths.Count))
+            {
+                return false;
+            }
 
             scrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
             scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
