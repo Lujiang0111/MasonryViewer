@@ -38,9 +38,14 @@ namespace MasonryViewer.Extensions
                 BitmapImage bitmapImage = new BitmapImage();
                 bitmapImage.BeginInit();
                 bitmapImage.DecodePixelWidth = 1;
-                bitmapImage.DecodePixelHeight = 1;
                 bitmapImage.UriSource = new Uri(ImagePaths[index]);
                 bitmapImage.EndInit();
+
+                if ((bitmapImage.DpiX > 0) && (bitmapImage.DpiY > 0) &&
+                    ((bitmapImage.DpiX * 10 < bitmapImage.DpiY) || (bitmapImage.DpiY * 10 < bitmapImage.DpiX)))
+                {
+                    throw new Exception();
+                }
             }
             catch
             {
